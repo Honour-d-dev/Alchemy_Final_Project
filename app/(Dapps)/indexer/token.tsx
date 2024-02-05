@@ -2,17 +2,20 @@ import tokenImage from "../../../public/money395.svg";
 import Image from "next/image";
 import { Disclosure } from "@headlessui/react";
 import { BsChevronUp } from "react-icons/bs";
+import { GetTokensForOwnerResponse } from "alchemy-sdk";
 //import { FormatBalance } from "@/utils/utils";
 
-function Tokens({ tokenData }) {
+function Tokens({ tokenData }: { tokenData: GetTokensForOwnerResponse }) {
   return window.innerWidth < 500 ? <SmallView tokenData={tokenData} /> : <LargeView tokenData={tokenData} />;
 }
 
-const LargeView = ({ tokenData }) => {
+const LargeView = ({ tokenData }: { tokenData: GetTokensForOwnerResponse }) => {
   return (
     <table className=" w-[95%] md:m-auto md:w-[90%]">
       <tbody>
         {tokenData.tokens.map((token, i) => {
+          if (!token.symbol) token.symbol = "N/A";
+          if (!token.name) token.name = "N/A";
           return (
             <tr className="border-b border-zinc-300" key={token.contractAddress}>
               <td className="p-2 md:p-4">
@@ -25,13 +28,13 @@ const LargeView = ({ tokenData }) => {
                     className="aspect-square h-7 w-7"
                   />
                   <div className="flex flex-row">
-                    {` ${token.name} ($${token.symbol?.length > 10 ? "" : token.symbol})`}
+                    {` ${token.name} ($${token.symbol.length > 10 ? "" : token.symbol})`}
                   </div>
                 </div>
               </td>
               <td className=" p-4 text-right">
-                <FormatBalance balance={token.balance ? token.balance : token.rawBalance} />
-                {` ${token.symbol?.length > token.name?.length ? token.name : token.symbol}`}
+                <FormatBalance balance={token.balance ? token.balance : token.rawBalance!} />
+                {` ${token.symbol.length > token.name?.length ? token.name : token.symbol}`}
               </td>
             </tr>
           );
@@ -41,11 +44,13 @@ const LargeView = ({ tokenData }) => {
   );
 };
 
-const SmallView = ({ tokenData }) => {
+const SmallView = ({ tokenData }: { tokenData: GetTokensForOwnerResponse }) => {
   return (
     <table className=" w-[95%] md:m-auto md:w-[90%]">
       <tbody>
         {tokenData.tokens.map((token, i) => {
+          if (!token.symbol) token.symbol = "N/A";
+          if (!token.name) token.name = "N/A";
           return (
             <tr className="border-b border-zinc-300" key={token.contractAddress}>
               <td className="p-2">
@@ -65,8 +70,8 @@ const SmallView = ({ tokenData }) => {
                     <BsChevronUp className="self-center ui-open:rotate-180 ui-open:transform" />
                   </Disclosure.Button>
                   <Disclosure.Panel className="text-right text-sm opacity-75">
-                    <FormatBalance balance={token.balance ? token.balance : token.rawBalance} />
-                    {` ${token.symbol?.length > token.name?.length ? token.name : token.symbol}`}
+                    <FormatBalance balance={token.balance ? token.balance : token.rawBalance!} />
+                    {` ${token.symbol.length > token.name?.length ? token.name : token.symbol}`}
                   </Disclosure.Panel>
                 </Disclosure>
               </td>
@@ -78,7 +83,8 @@ const SmallView = ({ tokenData }) => {
   );
 };
 
-const FormatBalance = ({ balance }) => {
+// TODO cross check
+const FormatBalance = ({ balance }: { balance: string }) => {
   if (balance.length < 19) {
     return <>{balance}</>;
   }

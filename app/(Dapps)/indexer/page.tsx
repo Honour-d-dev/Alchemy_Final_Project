@@ -1,6 +1,6 @@
 "use client";
-import { NftFilters, TokenBalanceType, Utils } from "alchemy-sdk";
-import { useEffect, useRef, useState } from "react";
+import { GetTokensForOwnerResponse, NftFilters, OwnedNftsResponse, TokenBalanceType, Utils } from "alchemy-sdk";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { FaWallet } from "react-icons/fa";
 import { BiErrorAlt } from "react-icons/bi";
@@ -16,9 +16,9 @@ import Navigate from "./navigate";
 
 export default function indexer() {
   const [userAddress, setUserAddress] = useState("");
-  const [balance, setBalance] = useState();
-  const [nftData, setNftData] = useState();
-  const [tokenData, setTokenData] = useState();
+  const [balance, setBalance] = useState("");
+  const [nftData, setNftData] = useState<OwnedNftsResponse>();
+  const [tokenData, setTokenData] = useState<GetTokensForOwnerResponse>();
   const [queryState, setQueryState] = useState(false);
   const [showError, setShowError] = useState(false);
 
@@ -26,44 +26,42 @@ export default function indexer() {
   const router = useRouter();
   //page hanlers
   const tokenPageNum = useRef(0);
-  const tokenPages = useRef([]);
+  const tokenPages = useRef<GetTokensForOwnerResponse[]>([]);
   const nftPageNum = useRef(0);
-  const nftPages = useRef([]);
+  const nftPages = useRef<OwnedNftsResponse[]>([]);
   const inRequest = useRef(false);
+
+  const search = useCallback(async (address: string) => {
+    setQueryState(true);
+    try {
+      setUserAddress(address);
+      const balance = await alchemy.core.getBalance(address);
+      const tokenData = await alchemy.core.getTokensForOwner(address);
+      const nftData = await alchemy.nft.getNftsForOwner(address, {
+        excludeFilters: [NftFilters.SPAM],
+        pageSize: 60,
+      });
+
+      setBalance(balance._hex);
+      setNftData(nftData);
+      setTokenData(tokenData);
+      setShowError(false);
+      nftPages.current.push(nftData);
+      tokenPages.current.push(tokenData);
+      setQueryState(false);
+    } catch (error) {
+      setQueryState(false);
+      setUserAddress("");
+      setShowError(true);
+      console.log(error);
+    }
+  }, []);
 
   useEffect(() => {
     if (searchParam) {
-      initSearch(searchParam);
+      search(searchParam);
     }
   }, [searchParam]);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        if (userAddress) {
-          const balance = await alchemy.core.getBalance(userAddress);
-          const tokenData = await alchemy.core.getTokensForOwner(userAddress);
-          const nftData = await alchemy.nft.getNftsForOwner(userAddress, {
-            excludeFilters: [NftFilters.SPAM],
-            pageSize: 60,
-          });
-
-          setBalance(balance);
-          setNftData(nftData);
-          setTokenData(tokenData);
-          setQueryState(false);
-          setShowError(false);
-          nftPages.current.push(nftData);
-          tokenPages.current.push(tokenData);
-        }
-      } catch (error) {
-        setQueryState(false);
-        setUserAddress("");
-        setShowError(true);
-        console.log(error);
-      }
-    })();
-  }, [userAddress]);
 
   const getNextTokenPage = async () => {
     if (!inRequest.current) {
@@ -87,7 +85,7 @@ export default function indexer() {
   };
 
   const getNextNftpage = async () => {
-    if (!inRequest.current) {
+    if (!inRequest.current && nftData) {
       if (nftData.pageKey && nftPageNum.current === nftPages.current.length - 1) {
         inRequest.current = true;
         const data = await alchemy.nft.getNftsForOwner(userAddress, {
@@ -109,23 +107,17 @@ export default function indexer() {
   };
 
   const getAccount = async () => {
-    const account = await window.ethereum.request({
+    const [account] = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
-    document.getElementById("connect_button").innerText = format(account[0]);
-    initSearch(account[0]);
+    document.getElementById("connect_button")!.innerText = format(account);
+    search(account);
   };
 
-  const searchAddress = () => {
-    const address = document.getElementById("input").value;
-    document.getElementById("input").value = "";
+  const getSearchAddress = () => {
+    const address = (document.getElementById("input") as HTMLInputElement).value;
     router.push(`/indexer?search=${address}`);
   };
-
-  function initSearch(address) {
-    setQueryState(true);
-    setUserAddress(address);
-  }
 
   return (
     <div className="flex flex-col justify-start self-start">
@@ -155,7 +147,7 @@ export default function indexer() {
           className=" m-auto rounded-md bg-zinc-200 p-2"
           onClick={(e) => {
             e.preventDefault();
-            searchAddress();
+            getSearchAddress();
           }}
         >
           <FiSearch />

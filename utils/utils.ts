@@ -11,9 +11,9 @@ const day = 60 * 60 * 24;
 
 export const alchemy = new Alchemy(config);
 
-export const format = (account) => `${account.slice(0, 5)}...${account.slice(-5)}`;
+export const format = (account: string) => `${account.slice(0, 5)}...${account.slice(-5)}`;
 
-export const timeFormat = (timestamp) => {
+export const timeFormat = (timestamp: number) => {
   const time = Math.floor(Date.now() / 1000) - timestamp;
   switch (true) {
     case time < minute:
@@ -27,7 +27,7 @@ export const timeFormat = (timestamp) => {
   }
 };
 
-export const blockStatus = (finalized, current) => {
+export const blockStatus = (finalized: number, current: number) => {
   switch (true) {
     case finalized >= current:
       return "finalized";

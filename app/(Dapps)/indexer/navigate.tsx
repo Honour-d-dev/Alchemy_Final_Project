@@ -1,6 +1,16 @@
 import { MdNavigateNext, MdNavigateBefore } from "react-icons/md";
 
-const Navigate = ({ prevPage, nextPage, pageNum, end }) => {
+const Navigate = ({
+  prevPage,
+  nextPage,
+  pageNum,
+  end,
+}: {
+  prevPage: () => void;
+  nextPage: () => Promise<void>;
+  pageNum: React.MutableRefObject<number>;
+  end: boolean;
+}) => {
   return (
     <div className="mb-2 flex h-6 flex-row items-center gap-3 bg-primary p-1">
       <button
