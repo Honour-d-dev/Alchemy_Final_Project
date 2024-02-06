@@ -2,7 +2,7 @@ import tokenImage from "../../../public/money395.svg";
 import Image from "next/image";
 import { Disclosure } from "@headlessui/react";
 import { BsChevronUp } from "react-icons/bs";
-import { GetTokensForOwnerResponse } from "alchemy-sdk";
+import type { GetTokensForOwnerResponse } from "alchemy-sdk";
 //import { FormatBalance } from "@/utils/utils";
 
 function Tokens({ tokenData }: { tokenData: GetTokensForOwnerResponse }) {

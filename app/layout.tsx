@@ -1,3 +1,4 @@
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { Inter, Work_Sans } from "next/font/google";
 
@@ -12,7 +13,10 @@ export const metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${work_sans.variable} font-sans`}>{children}</body>
+      <body className={`${inter.variable} ${work_sans.variable} font-sans`}>
+        {children}
+        <Toaster position="top-left" />
+      </body>
     </html>
   );
 }

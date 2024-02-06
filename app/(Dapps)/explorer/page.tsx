@@ -54,7 +54,7 @@ export default function Explorer() {
               </div>
               <div className="m-1 whitespace-nowrap">
                 {`${parseFloat(
-                  Utils.formatEther(parseInt(block.baseFeePerGas!._hex) * parseInt(block.gasUsed._hex)),
+                  Utils.formatEther(BigInt(block.baseFeePerGas!._hex) * BigInt(block.gasUsed._hex)),
                 ).toFixed(3)} ETH`}
               </div>
             </div>
@@ -88,7 +88,7 @@ export default function Explorer() {
                   </Link>
                 </div>
                 <div className="m-1 whitespace-nowrap">{`${parseFloat(
-                  Utils.formatEther(parseInt(transaction.gasUsed._hex) * parseInt(transaction.effectiveGasPrice._hex)),
+                  Utils.formatEther(BigInt(transaction.gasUsed._hex) * BigInt(transaction.effectiveGasPrice._hex)),
                 ).toFixed(5)} ETH`}</div>
               </div>
             );

@@ -6,6 +6,7 @@ import { IoIosAddCircleOutline, IoMdRemoveCircleOutline } from "react-icons/io";
 import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useEscrow } from "./utils/useEscrow";
+import { toast } from "sonner";
 
 export const EscrowForm = ({ escrowType }: { escrowType?: EscrowType }) => {
   return escrowType === "exchange" ? (
@@ -51,15 +52,33 @@ export const OtcForm = () => {
   };
 
   const createEscrow = async () => {
-    const p = formSchema.safeParse(formRef.current);
+    const id = toast.loading("validating form...");
+    if (!formSchema.safeParse(formRef.current).success) {
+      toast.error("form validation failed", { id, duration: 3000 });
+      return;
+    }
     if (wallet && formRef.current) {
       const { amount, arbiter, beneficiary, token } = formRef.current;
-      if (token) await wallet.approveToken(token, amount);
-      await wallet.write({
-        functionName: "createOTC",
-        args: [arbiter, beneficiary, token ?? zeroAddress, amount],
-        value: !token ? amount : undefined,
-      });
+      try {
+        if (token) {
+          toast.loading("approving token...", { id });
+          await wallet.approveToken(token, amount);
+        }
+        toast.loading("creating escrow...", { id });
+        const hash = await wallet.write({
+          functionName: "createOTC",
+          args: [arbiter, beneficiary, token ?? zeroAddress, amount],
+          value: !token ? amount : undefined,
+        });
+        await wallet.waitForTransactionReceipt({ hash });
+        toast.success("escrow created!", { id, duration: 3000 });
+      } catch (error) {
+        if (error && typeof error === "object" && "message" in error) {
+          toast.error(`${error.message}`, { id, duration: 3000 });
+        } else {
+          toast.error(`could not create escrow`, { id, duration: 3000 });
+        }
+      }
     }
   };
 
@@ -178,15 +197,33 @@ export const TlForm = () => {
   const formRef = useRef<EscrowForm>({} as EscrowForm);
 
   const createEscrow = async () => {
+    const id = toast.loading("validating form...");
+    if (!formSchema.safeParse(formRef.current).success) {
+      toast.error("form validation failed", { id, duration: 3000 });
+      return;
+    }
     if (wallet && formRef.current) {
-      formSchema.safeParse(formRef.current); //todo add toast error here if fail
       const { beneficiary, timeLock, token, amount } = formRef.current;
-      if (token) await wallet.approveToken(token, amount);
-      await wallet.write({
-        functionName: "createTL",
-        args: [beneficiary, timeLock, token ?? zeroAddress, amount],
-        value: !token ? amount : undefined,
-      });
+      try {
+        if (token) {
+          toast.loading("approving token...", { id });
+          await wallet.approveToken(token, amount);
+        }
+        toast.loading("creating escrow...", { id });
+        const hash = await wallet.write({
+          functionName: "createTL",
+          args: [beneficiary, timeLock, token ?? zeroAddress, amount],
+          value: !token ? amount : undefined,
+        });
+        await wallet.waitForTransactionReceipt({ hash });
+        toast.success("escrow created!", { id, duration: 3000 });
+      } catch (error) {
+        if (error && typeof error === "object" && "message" in error) {
+          toast.error(`${error.message}`, { id, duration: 3000 });
+        } else {
+          toast.error(`could not create escrow`, { id, duration: 3000 });
+        }
+      }
     }
   };
 
@@ -269,15 +306,34 @@ export const ExcForm = () => {
   const formRef = useRef<EscrowForm>({} as EscrowForm);
 
   const createEscrow = async () => {
+    const id = toast.loading("validating form...");
+    if (!formSchema.safeParse(formRef.current).success) {
+      toast.error("form validation failed", { id, duration: 3000 });
+      return;
+    }
     if (wallet && formRef.current) {
-      formSchema.parse(formRef.current);
       const { beneficiary, dToken, bToken, dAmount, bAmount } = formRef.current;
-      if (dToken) await wallet.approveToken(dToken, dAmount);
-      await wallet.write({
-        functionName: "createExc",
-        args: [beneficiary, dToken ?? zeroAddress, bToken ?? zeroAddress, dAmount, bAmount],
-        value: !dToken ? dAmount : undefined,
-      });
+      try {
+        if (dToken) {
+          toast.loading("approving token...", { id });
+          await wallet.approveToken(dToken, dAmount);
+        }
+        toast.loading("creating escrow...", { id });
+        const hash = await wallet.write({
+          functionName: "createExc",
+          args: [beneficiary, dToken ?? zeroAddress, bToken ?? zeroAddress, dAmount, bAmount],
+          value: !dToken ? dAmount : undefined,
+        });
+
+        await wallet.waitForTransactionReceipt({ hash });
+        toast.success("escrow created!", { id, duration: 3000 });
+      } catch (error) {
+        if (error && typeof error === "object" && "message" in error) {
+          toast.error(`${error.message}`, { id, duration: 3000 });
+        } else {
+          toast.error(`could not create escrow`, { id, duration: 3000 });
+        }
+      }
     }
   };
 

@@ -70,12 +70,12 @@ function Transaction() {
             </tr>
             <tr>
               <td className=" p-4">Gas used:</td>
-              <td className=" p-4">{`${parseInt(transactionReceipt.gasUsed._hex, 16)} Gas`}</td>
+              <td className=" p-4">{`${BigInt(transactionReceipt.gasUsed._hex)} Gas`}</td>
             </tr>
             <tr>
               <td className=" p-4">Fee:</td>
               <td className=" p-4">{`${Utils.formatEther(
-                parseInt(transactionInfo.gasPrice!._hex) * parseInt(transactionReceipt.gasUsed._hex, 16), //cross check
+                BigInt(transactionInfo.gasPrice!._hex) * BigInt(transactionReceipt.gasUsed._hex), //cross check
               )} ETH`}</td>
             </tr>
             <tr>

@@ -2,6 +2,7 @@
 import { PropsWithChildren, createContext, useState, useEffect, useContext, useCallback } from "react";
 import { Address } from "viem";
 import { EscrowClient, ExcEscrows, OtcEscrows, TlEscrows, createEscrowClient } from "./types";
+import { toast } from "sonner";
 
 type TEscrowContext = {
   account?: Address;
@@ -33,16 +34,48 @@ export const EscrowProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   useEffect(() => {
-    async function fetchEscrows() {
-      if (wallet) {
-        const [otcEscrows, tlEscrows, excEscrows] = await wallet.read({ functionName: "getEscrows" });
-        setOtcEscrows(otcEscrows);
-        setTlEscrows(tlEscrows);
-        setExcEscrows(excEscrows);
-      } //todo contract listener goes here
+    if (!wallet) {
+      toast.info("connect your wallet to view escrows", { duration: 3000 });
+      return;
     }
+    const fetchEscrows = async () => {
+      const [otcEscrows, tlEscrows, excEscrows] = await wallet.read({ functionName: "getEscrows" });
+      setOtcEscrows(otcEscrows);
+      setTlEscrows(tlEscrows);
+      setExcEscrows(excEscrows);
+    };
     fetchEscrows();
-  }, [wallet]);
+
+    const unwatchExc = wallet.watch({
+      eventName: "ExcCreated",
+      onLogs: async () => {
+        setExcEscrows(await wallet.read({ functionName: "getExcEscrows" }));
+      },
+    });
+
+    const unwatchOtc = wallet.watch({
+      eventName: "OTCCreated",
+      onLogs: async () => {
+        setOtcEscrows(await wallet.read({ functionName: "getOTCEscrows" }));
+      },
+    });
+
+    const unwatchTl = wallet.watch({
+      eventName: "TLCreated",
+      onLogs: async () => {
+        setTlEscrows(await wallet.read({ functionName: "getTLEscrow" }));
+      },
+    });
+
+    window.ethereum.on("accountsChanged", () => connectWallet());
+
+    return () => {
+      unwatchExc();
+      unwatchOtc();
+      unwatchTl();
+      window.ethereum.removeListener("accountsChanged", () => connectWallet());
+    };
+  }, [wallet, connectWallet]);
 
   return (
     <EscrowContext.Provider

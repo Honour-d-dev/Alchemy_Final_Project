@@ -50,18 +50,18 @@ function Block() {
             </tr>
             <tr>
               <td className=" p-4">Gas limit:</td>
-              <td className=" p-4">{`${parseInt(blockInfo.gasLimit._hex, 16)} Gas`} </td>
+              <td className=" p-4">{`${BigInt(blockInfo.gasLimit._hex).toString()} Gas`} </td>
             </tr>
             <tr>
               <td className=" p-4">Gas Used: </td>
               <td className=" p-4">
-                {`${parseInt(blockInfo.gasUsed._hex, 16)} Gas`}{" "}
+                {`${BigInt(blockInfo.gasUsed._hex).toString()} Gas`}{" "}
                 <meter
                   className="relative left-1 top-[2px] h-5 rounded-sm"
                   low={0.65}
                   high={0.8}
                   optimum={0.5}
-                  value={parseInt(blockInfo.gasUsed._hex, 16) / parseInt(blockInfo.gasLimit._hex, 16)}
+                  value={Number(BigInt(blockInfo.gasUsed._hex) / BigInt(blockInfo.gasLimit._hex))}
                 />
               </td>
             </tr>
@@ -86,7 +86,7 @@ function Block() {
             <tr>
               <td className=" p-4">Burnt ETH</td>
               <td className=" p-4">{`${Utils.formatEther(
-                parseInt(blockInfo.baseFeePerGas!._hex) * parseInt(blockInfo.gasUsed._hex, 16), //cross check
+                BigInt(blockInfo.baseFeePerGas!._hex) * BigInt(blockInfo.gasUsed._hex), //cross check
               )} ETH`}</td>
             </tr>
           </tbody>

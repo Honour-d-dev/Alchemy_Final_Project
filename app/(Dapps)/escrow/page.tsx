@@ -1,30 +1,17 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
-import { EscrowType, ExcEscrows, OtcEscrows, TlEscrows } from "./utils/types";
+import { useState } from "react";
+import { EscrowType } from "./utils/types";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { EscrowForm } from "./ecsrowForms";
 import { useEscrow } from "./utils/useEscrow";
 import Escrow from "./escrow";
+import { format } from "@/utils/utils";
 
 function App() {
   const [escrowType, setEscrowType] = useState<EscrowType>();
-  const { account, wallet, connectWallet } = useEscrow();
   const [openEscrowList, setOpenEscrowList] = useState(false);
-
-  useEffect(() => {
-    async function init() {
-      console.log("in init");
-      window.ethereum.on("accountsChanged", () => connectWallet());
-      window.ethereum.on("chainChanged", () => window.location.reload());
-    }
-    init();
-    return () => {
-      window.ethereum.removeListener("accountsChanged", () => connectWallet());
-    };
-  }, []);
-
-  const format = (account: string) => `${account.slice(0, 5)}...${account.slice(-5)}`;
+  const { account, connectWallet } = useEscrow();
 
   return (
     <div className="flex min-h-screen w-screen flex-col items-center justify-center">

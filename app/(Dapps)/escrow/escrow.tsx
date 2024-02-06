@@ -80,7 +80,10 @@ const LoadExc = ({ index }: { index: number }) => {
   }, [escrow]);
 
   const claim = async () => {
-    if (wallet) await wallet.write({ functionName: "claimExc", args: [BigInt(index)] });
+    if (wallet) {
+      if (escrow.bToken !== zeroAddress) await wallet.approveToken(escrow.bToken, escrow.bAmount);
+      await wallet.write({ functionName: "claimExc", args: [BigInt(index)] });
+    }
   };
 
   const cancel = async () => {
