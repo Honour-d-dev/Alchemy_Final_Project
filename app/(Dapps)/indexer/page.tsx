@@ -13,41 +13,40 @@ import Image from "next/image";
 import Tokens from "./token";
 import Nfts from "./nft";
 import Navigate from "./navigate";
+import { toast } from "sonner";
 
 export default function indexer() {
   const [userAddress, setUserAddress] = useState("");
   const [balance, setBalance] = useState("");
-  const [nftData, setNftData] = useState<OwnedNftsResponse>();
-  const [tokenData, setTokenData] = useState<GetTokensForOwnerResponse>();
+  const [nftData, setNftData] = useState<OwnedNftsResponse[]>([]);
+  const [nftPage, setNftPage] = useState(0);
+  const [tokenData, setTokenData] = useState<GetTokensForOwnerResponse[]>([]);
+  const [tokenPage, setTokenPage] = useState(0);
   const [queryState, setQueryState] = useState(false);
   const [showError, setShowError] = useState(false);
 
   const searchParam = useSearchParams().get("search");
   const router = useRouter();
-  //page hanlers
-  const tokenPageNum = useRef(0);
-  const tokenPages = useRef<GetTokensForOwnerResponse[]>([]);
-  const nftPageNum = useRef(0);
-  const nftPages = useRef<OwnedNftsResponse[]>([]);
+
   const inRequest = useRef(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const search = useCallback(async (address: string) => {
     setQueryState(true);
     try {
-      setUserAddress(address);
       const balance = await alchemy.core.getBalance(address);
       const tokenData = await alchemy.core.getTokensForOwner(address);
       const nftData = await alchemy.nft.getNftsForOwner(address, {
-        excludeFilters: [NftFilters.SPAM],
+        //excludeFilters: [NftFilters.SPAM],
         pageSize: 60,
       });
 
+      setNftData([nftData]);
+      setTokenData([tokenData]);
       setBalance(balance._hex);
-      setNftData(nftData);
-      setTokenData(tokenData);
+      setUserAddress(address);
       setShowError(false);
-      nftPages.current.push(nftData);
-      tokenPages.current.push(tokenData);
+
       setQueryState(false);
     } catch (error) {
       setQueryState(false);
@@ -65,45 +64,45 @@ export default function indexer() {
 
   const getNextTokenPage = async () => {
     if (!inRequest.current) {
-      if (tokenData?.pageKey && tokenPageNum.current === tokenPages.current.length - 1) {
-        inRequest.current = true;
-        const data = await alchemy.core.getTokensForOwner(userAddress, {
+      inRequest.current = true; //spam prevention
+      if (tokenData[tokenPage].pageKey && tokenPage === tokenData.length - 1) {
+        const id = toast.loading("fetching tokens...", { position: "bottom-right" });
+        const newTokenPage = await alchemy.core.getTokensForOwner(userAddress, {
           contractAddresses: TokenBalanceType.ERC20,
-          pageKey: tokenData.pageKey,
+          pageKey: tokenData[tokenPage].pageKey,
         });
-        tokenPages.current.push(data);
-        inRequest.current = false;
+        setTokenData((prev) => [...prev, newTokenPage]);
+        toast.dismiss(id);
       }
-      tokenPageNum.current += 1;
-      setTokenData(tokenPages.current[tokenPageNum.current]);
+      setTokenPage((p) => p + 1);
+      inRequest.current = false;
     }
   };
 
   const getPrevTokenPage = () => {
-    tokenPageNum.current -= 1;
-    setTokenData(tokenPages.current[tokenPageNum.current]);
+    setTokenPage((p) => p - 1);
   };
 
   const getNextNftpage = async () => {
-    if (!inRequest.current && nftData) {
-      if (nftData.pageKey && nftPageNum.current === nftPages.current.length - 1) {
-        inRequest.current = true;
-        const data = await alchemy.nft.getNftsForOwner(userAddress, {
-          pageKey: nftData.pageKey,
+    if (!inRequest.current) {
+      inRequest.current = true;
+      if (nftData[nftPage].pageKey && nftPage === nftData.length - 1) {
+        const id = toast.loading("fetching nfts...", { position: "bottom-right" });
+        const newNftPage = await alchemy.nft.getNftsForOwner(userAddress, {
+          pageKey: nftData[nftPage].pageKey,
           pageSize: 60,
-          excludeFilters: [NftFilters.SPAM],
+          //excludeFilters: [NftFilters.SPAM],
         });
-        nftPages.current.push(data);
-        inRequest.current = false;
+        setNftData((prev) => [...prev, newNftPage]);
+        toast.dismiss(id);
       }
-      nftPageNum.current += 1;
-      setNftData(nftPages.current[nftPageNum.current]);
+      setNftPage((p) => p + 1);
+      inRequest.current = false;
     }
   };
 
   const getPrevNftpage = () => {
-    nftPageNum.current -= 1;
-    setNftData(nftPages.current[nftPageNum.current]);
+    setNftPage((p) => p - 1);
   };
 
   const getAccount = async () => {
@@ -115,14 +114,15 @@ export default function indexer() {
   };
 
   const getSearchAddress = () => {
-    const address = (document.getElementById("input") as HTMLInputElement).value;
+    const address = searchRef.current!.value;
+    searchRef.current!.value = "";
     router.push(`/indexer?search=${address}`);
   };
 
   return (
     <div className="flex flex-col justify-start self-start">
       <div className="fixed left-0 right-0 top-0 z-10 h-20 w-screen bg-primary blur-[1px]"></div>
-      <h1 className="sticky top-5 z-20 mb-10 text-center text-3xl font-medium md:text-4xl md:font-semibold">
+      <h1 className="sticky top-5 z-20 mb-10 text-center text-3xl font-medium text-zinc-300 md:text-4xl md:font-semibold">
         Token Indexer Dapp{" "}
       </h1>
       <button
@@ -138,6 +138,7 @@ export default function indexer() {
       </button>
       <div className="relative m-auto mt-6 flex min-w-[300px] max-w-[500px] rounded-md bg-white p-1 focus-within:outline focus-within:outline-zinc-200">
         <input
+          ref={searchRef}
           id="input"
           type="text"
           className="m-1 flex flex-grow px-1 placeholder:text-center placeholder:font-[cursive] focus-visible:outline-none"
@@ -160,15 +161,15 @@ export default function indexer() {
         </div>
       )}
       {queryState && <Image className="m-auto h-20 w-20" src={spinner} alt="loading image" priority={true} />}
-      {nftData && tokenData && !queryState && (
+      {nftData.length > 0 && tokenData.length > 0 && !queryState && (
         <div className="flex flex-col items-center pt-3">
-          <div className="m-6 flex w-5/6 flex-col rounded-md bg-primary shadow">
+          <div className="m-6 flex w-5/6 flex-col rounded-md bg-zinc-200 shadow">
             <div className="flex flex-col p-4">
-              <p>ADDRESS:</p>
+              <p className="font-semibold">ADDRESS:</p>
               <div>{userAddress}</div>
             </div>
             <div className="flex flex-col p-4">
-              <div>ETH BALANCE</div>
+              <div className="font-semibold">ETH BALANCE</div>
               <div className="flex flex-row items-center">
                 <Image src={etherLogo} alt="ether-logo" className="m-1 h-6 w-4" />
                 <p>{Utils.formatEther(balance)} ETH</p>
@@ -178,36 +179,38 @@ export default function indexer() {
 
           <Tab.Group>
             <Tab.List className={"m-auto flex w-3/4 min-w-[100px] rounded-md border border-zinc-400"}>
-              <Tab className=" flex flex-grow justify-center rounded-md p-2 focus-visible:outline-none ui-selected:bg-primary">
+              <Tab className=" flex flex-grow justify-center rounded-md p-2 focus-visible:outline-none ui-selected:bg-zinc-200">
                 Tokens
               </Tab>
-              <Tab className=" flex flex-grow justify-center rounded-md p-2 focus-visible:outline-none ui-selected:bg-primary">
+              <Tab className=" flex flex-grow justify-center rounded-md p-2 focus-visible:outline-none ui-selected:bg-zinc-200">
                 NFTs
               </Tab>
             </Tab.List>
             <Tab.Panels>
               <Tab.Panel
                 className={
-                  "mt-1 flex w-[95vw] flex-col items-center justify-center gap-1 rounded-lg bg-primary md:w-[80vw]"
+                  "mt-1 flex w-[95vw] flex-col items-center justify-center gap-1 rounded-lg border border-gray-300 bg-zinc-200 md:w-[80vw]"
                 }
               >
-                <Tokens tokenData={tokenData} />
+                <Tokens tokenData={tokenData[tokenPage]} />
                 <Navigate
                   prevPage={getPrevTokenPage}
                   nextPage={getNextTokenPage}
-                  pageNum={tokenPageNum}
-                  end={!tokenData.pageKey ? true : false}
+                  pageNum={tokenPage}
+                  end={!tokenData[tokenPage].pageKey ? true : false}
                 />
               </Tab.Panel>
               <Tab.Panel
-                className={"mt-1 flex w-[95vw] flex-col items-center justify-center rounded-lg bg-primary md:w-[80vw]"}
+                className={
+                  "mt-1 flex w-[95vw] flex-col items-center justify-center rounded-lg border border-gray-300 bg-zinc-200 md:w-[80vw]"
+                }
               >
-                <Nfts nftData={nftData} />
+                <Nfts nftData={nftData[nftPage]} />
                 <Navigate
                   prevPage={getPrevNftpage}
                   nextPage={getNextNftpage}
-                  pageNum={nftPageNum}
-                  end={!nftData.pageKey ? true : false}
+                  pageNum={nftPage}
+                  end={!nftData[nftPage].pageKey ? true : false}
                 />
               </Tab.Panel>
             </Tab.Panels>

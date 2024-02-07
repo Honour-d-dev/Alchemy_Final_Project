@@ -9,7 +9,11 @@ function Nfts({ nftData }: { nftData: OwnedNftsResponse }) {
             <img
               className="mx-auto aspect-square h-auto w-full rounded-sm"
               src={
-                nft.image.cachedUrl || nft.image.pngUrl || nft.image.originalUrl || "https://via.placeholder.com/200"
+                nft.image.cachedUrl ||
+                nft.image.pngUrl ||
+                nft.image.originalUrl ||
+                nft.image.thumbnailUrl ||
+                "https://via.placeholder.com/200"
               }
             />
             <div className=" font-body overflow-hidden text-ellipsis whitespace-nowrap text-center">

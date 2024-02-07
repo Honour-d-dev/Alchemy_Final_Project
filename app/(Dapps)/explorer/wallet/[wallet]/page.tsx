@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AssetTransfersCategory, AssetTransfersWithMetadataResult, SortingOrder, Utils } from "alchemy-sdk";
 import { useParams } from "next/navigation";
 import { RxOpenInNewWindow } from "react-icons/rx";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function Wallet() {
   const { wallet } = useParams();
@@ -46,20 +47,19 @@ function Wallet() {
     <div className="flex w-full flex-col">
       <div className="m-8 flex flex-col rounded p-2 shadow-md lg:w-1/2">
         <div className="m-2">
-          <p>Address </p>
-          <p>{wallet}</p>
+          <p className="font-medium">{wallet} </p>
         </div>
         <div className="m-2 flex flex-col">
-          <p>Eth Balance</p>
+          <p className="font-medium">Eth Balance</p>
           <p>{balance ? `${Utils.formatEther(balance)} ETH` : "loading..."}</p>
         </div>
         <div className="m-2 flex flex-col">
-          <p>Total Transactions</p>
+          <p className="font-medium">Total Transactions</p>
           <p>{`${count} txns`}</p>
         </div>
         <Link href={`/indexer?search=${wallet}`} className="m-2 flex flex-row">
-          Token Holdings
-          <RxOpenInNewWindow size={"25px"} className="opacity-60" />
+          view tokens
+          <RxOpenInNewWindow className="h-4 w-4 opacity-60" />
         </Link>
       </div>
       <div className="flex flex-col">
@@ -74,25 +74,25 @@ function Wallet() {
                 <th className="whitespace-nowrap p-3 font-medium">From</th>
                 <th className="whitespace-nowrap p-3 font-medium">To</th>
                 <th className="whitespace-nowrap p-3 font-medium">Date</th>
-                <th className="whitespace-nowrap p-3 font-medium">Amount</th>
+                <th className="whitespace-nowrap p-3 font-medium">Value</th>
               </tr>
             </thead>
             <tbody>
-              {transfersFrom &&
+              {transfersFrom.length ? (
                 transfersFrom.map((transferFrom) => (
                   <tr className=" border-b border-zinc-300" key={transferFrom.hash}>
-                    <td className=" whitespace-nowrap p-3">
+                    <td className=" whitespace-nowrap p-3 hover:font-semibold">
                       <Link href={`/explorer/transaction/${transferFrom.hash}`}>{format(transferFrom.hash)}</Link>
                     </td>
-                    <td className="whitespace-nowrap p-3">
+                    <td className="whitespace-nowrap p-3 hover:font-semibold">
                       <Link href={`/explorer/block/${Number(transferFrom.blockNum)}`}>
                         {Number(transferFrom.blockNum)}
                       </Link>
                     </td>
-                    <td className="whitespace-nowrap p-3">
+                    <td className="whitespace-nowrap p-3 hover:font-semibold">
                       <Link href={`/explorer/wallet/${transferFrom.from}`}>{format(transferFrom.from)}</Link>
                     </td>
-                    <td className="whitespace-nowrap p-3">
+                    <td className="whitespace-nowrap p-3 hover:font-semibold">
                       <Link href={`/explorer/wallet/${transferFrom.to}`}>
                         {transferFrom.to ? format(transferFrom.to) : "-"}
                       </Link>
@@ -102,7 +102,10 @@ function Wallet() {
                       {transferFrom.value ? `${transferFrom.value.toFixed(3)} ETH` : "-"}
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <TableSkeleton />
+              )}
             </tbody>
           </table>
         </div>
@@ -116,23 +119,23 @@ function Wallet() {
                 <th className="whitespace-nowrap p-3 font-medium">From</th>
                 <th className="whitespace-nowrap p-3 font-medium">To</th>
                 <th className="whitespace-nowrap p-3 font-medium">Date</th>
-                <th className="whitespace-nowrap p-3 font-medium">Amount</th>
+                <th className="whitespace-nowrap p-3 font-medium">Value</th>
               </tr>
             </thead>
             <tbody>
-              {transfersTo &&
+              {transfersTo.length ? (
                 transfersTo.map((transferTo) => (
                   <tr className=" border-b border-zinc-300" key={transferTo.hash}>
-                    <td className=" whitespace-nowrap p-3">
+                    <td className=" whitespace-nowrap p-3 hover:font-medium">
                       <Link href={`/explorer/transaction/${transferTo.hash}`}>{format(transferTo.hash)}</Link>
                     </td>
-                    <td className="whitespace-nowrap p-3">
+                    <td className="whitespace-nowrap p-3 hover:font-medium">
                       <Link href={`/explorer/block/${Number(transferTo.blockNum)}`}>{Number(transferTo.blockNum)}</Link>
                     </td>
-                    <td className="whitespace-nowrap p-3">
+                    <td className="whitespace-nowrap p-3 hover:font-medium">
                       <Link href={`/explorer/wallet/${transferTo.from}`}>{format(transferTo.from)}</Link>
                     </td>
-                    <td className="whitespace-nowrap p-3">
+                    <td className="whitespace-nowrap p-3 hover:font-medium">
                       <Link href={`/explorer/wallet/${transferTo.to}`}>
                         {transferTo.to ? format(transferTo.to) : "-"}
                       </Link>
@@ -142,7 +145,10 @@ function Wallet() {
                       {transferTo.value ? `${transferTo.value.toFixed(3)} ETH` : "-"}{" "}
                     </td>
                   </tr>
-                ))}
+                ))
+              ) : (
+                <TableSkeleton />
+              )}
             </tbody>
           </table>
         </div>
@@ -150,5 +156,32 @@ function Wallet() {
     </div>
   );
 }
+
+const TableSkeleton = () => {
+  return [0, 1, 2, 3, 4, 5].map((i) => {
+    return (
+      <tr className=" border-b border-zinc-300" key={i}>
+        <td className="p-3">
+          <Skeleton className="h-4 bg-slate-300" />
+        </td>
+        <td className="p-3">
+          <Skeleton className="h-4 bg-slate-300" />
+        </td>
+        <td className="p-3">
+          <Skeleton className="h-4 bg-slate-300" />
+        </td>
+        <td className="p-3">
+          <Skeleton className="h-4 bg-slate-300" />
+        </td>
+        <td className="p-3">
+          <Skeleton className="h-4 bg-slate-300" />
+        </td>
+        <td className="p-3">
+          <Skeleton className="h-4 bg-slate-300" />
+        </td>
+      </tr>
+    );
+  });
+};
 
 export default Wallet;

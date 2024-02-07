@@ -1,6 +1,6 @@
 "use client";
 
-import { Address, formatEther, zeroAddress } from "viem";
+import { Address, formatEther, formatUnits, zeroAddress } from "viem";
 import { useEscrow } from "./utils/useEscrow";
 import { useEffect, useMemo, useState } from "react";
 import { EscrowType } from "./utils/types";
@@ -60,7 +60,7 @@ const LoadExc = ({ index }: { index: number }) => {
     const fetchTokenData = async () => {
       if (escrow.dToken !== zeroAddress) {
         setDToken({
-          amount: await wallet!.formatTokenAmount(escrow.bToken, escrow.bAmount),
+          amount: formatUnits(escrow.dAmount, await wallet!.tokenDecimals(escrow.dToken)),
           symbol: await wallet!.tokenSymbol(escrow.dToken),
         });
       } else {
@@ -69,7 +69,7 @@ const LoadExc = ({ index }: { index: number }) => {
 
       if (escrow.bToken !== zeroAddress) {
         setBToken({
-          amount: await wallet!.formatTokenAmount(escrow.bToken, escrow.bAmount),
+          amount: formatUnits(escrow.bAmount, await wallet!.tokenDecimals(escrow.bToken)),
           symbol: await wallet!.tokenSymbol(escrow.bToken),
         });
       } else {
@@ -114,7 +114,7 @@ const LoadTl = ({ index }: { index: number }) => {
     const fetchTokenData = async () => {
       if (escrow.token !== zeroAddress) {
         setToken({
-          amount: await wallet!.formatTokenAmount(escrow.token, escrow.amount),
+          amount: formatUnits(escrow.amount, await wallet!.tokenDecimals(escrow.token)),
           symbol: await wallet!.tokenSymbol(escrow.token),
         });
       } else {
@@ -150,7 +150,7 @@ const LoadOtc = ({ index }: { index: number }) => {
     const fetchTokenData = async () => {
       if (escrow.token !== zeroAddress) {
         setToken({
-          amount: await wallet!.formatTokenAmount(escrow.token, escrow.amount),
+          amount: formatUnits(escrow.amount, await wallet!.tokenDecimals(escrow.token)),
           symbol: await wallet!.tokenSymbol(escrow.token),
         });
       } else {

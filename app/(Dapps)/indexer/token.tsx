@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Disclosure } from "@headlessui/react";
 import { BsChevronUp } from "react-icons/bs";
 import type { GetTokensForOwnerResponse } from "alchemy-sdk";
-//import { FormatBalance } from "@/utils/utils";
+//import { formatBalance } from "@/utils/utils";
 
 function Tokens({ tokenData }: { tokenData: GetTokensForOwnerResponse }) {
   return window.innerWidth < 500 ? <SmallView tokenData={tokenData} /> : <LargeView tokenData={tokenData} />;
@@ -33,8 +33,9 @@ const LargeView = ({ tokenData }: { tokenData: GetTokensForOwnerResponse }) => {
                 </div>
               </td>
               <td className=" p-4 text-right">
-                <FormatBalance balance={token.balance ? token.balance : token.rawBalance!} />
-                {` ${token.symbol.length > token.name?.length ? token.name : token.symbol}`}
+                {`${formatBalance(token.balance ?? token.rawBalance!)} ${
+                  token.symbol.length > token.name?.length ? token.name : token.symbol
+                }`}
               </td>
             </tr>
           );
@@ -70,8 +71,9 @@ const SmallView = ({ tokenData }: { tokenData: GetTokensForOwnerResponse }) => {
                     <BsChevronUp className="self-center ui-open:rotate-180 ui-open:transform" />
                   </Disclosure.Button>
                   <Disclosure.Panel className="text-right text-sm opacity-75">
-                    <FormatBalance balance={token.balance ? token.balance : token.rawBalance!} />
-                    {` ${token.symbol.length > token.name?.length ? token.name : token.symbol}`}
+                    {`${formatBalance(token.balance ?? token.rawBalance!)}  ${
+                      token.symbol.length > token.name?.length ? token.name : token.symbol
+                    }`}
                   </Disclosure.Panel>
                 </Disclosure>
               </td>
@@ -83,23 +85,16 @@ const SmallView = ({ tokenData }: { tokenData: GetTokensForOwnerResponse }) => {
   );
 };
 
-// TODO cross check
-const FormatBalance = ({ balance }: { balance: string }) => {
-  if (balance.length < 19) {
-    return <>{balance}</>;
+const formatBalance = (balance: string) => {
+  const bal = parseFloat(balance);
+  switch (true) {
+    case bal > 1000000000:
+      return bal.toExponential(6);
+    case bal > 0.000000001:
+      return bal.toExponential(6);
+    default:
+      return bal.toString();
   }
-  const digits = balance.split(".");
-  if (digits[0].length >= 9) {
-    let whole = `${digits[0].slice(0, 1)}.${digits[0].slice(1, 3)}`;
-    let i = digits[0].length - 1;
-    return (
-      <>
-        {`${whole}ⅹ10`}
-        <span className="relative bottom-1 text-xs">{i}</span>
-      </>
-    );
-  }
-  return <>{`${digits[0]}.${digits[1].slice(0, 18)}`}</>;
 };
 
 export default Tokens;

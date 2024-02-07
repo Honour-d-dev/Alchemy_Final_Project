@@ -9,7 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className=" max-w-screen flex min-h-screen flex-row items-center justify-center ">
       <Sheet>
-        <SheetTrigger className=" fixed left-4 top-4 z-30 flex h-9 w-9 items-center justify-center p-1 shadow-md">
+        <SheetTrigger className=" fixed left-4 top-4 z-30 flex h-8 w-8 items-center justify-center rounded bg-white p-1 shadow-md">
           <AiOutlineBars className="h-6 w-6" />
         </SheetTrigger>
         <SheetContent className="flex w-3/5 flex-col gap-2 sm:max-w-xs" side={"left"}>

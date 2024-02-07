@@ -12,6 +12,7 @@ import {
   createWalletClient,
   custom,
   erc20Abi,
+  parseUnits,
   publicActions,
 } from "viem";
 import { sepolia } from "viem/chains";
@@ -125,18 +126,9 @@ export const createEscrowClient = (account: Address) =>
           args: [contractAddress, amount],
         });
       },
-      formatTokenAmount: async (token: Address, amount: bigint) => {
-        const d = await client.readContract({ address: token, abi: erc20Abi, functionName: "decimals" });
-        const value = amount / BigInt(10 ** d);
-        switch (true) {
-          case value >= 1000000000:
-            return Number(value).toExponential(3);
-          case value <= 0.000000001:
-            return Number(value).toExponential(3);
-          default:
-            return value.toString();
-        }
-      },
+
+      tokenDecimals: (token: Address) =>
+        client.readContract({ address: token, abi: erc20Abi, functionName: "decimals" }),
 
       tokenSymbol: (token: Address) => client.readContract({ address: token, abi: erc20Abi, functionName: "symbol" }),
     }));

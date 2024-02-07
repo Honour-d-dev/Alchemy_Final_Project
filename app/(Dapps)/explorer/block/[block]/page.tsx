@@ -61,7 +61,7 @@ function Block() {
                   low={0.65}
                   high={0.8}
                   optimum={0.5}
-                  value={Number(BigInt(blockInfo.gasUsed._hex) / BigInt(blockInfo.gasLimit._hex))}
+                  value={parseInt(blockInfo.gasUsed._hex) / parseInt(blockInfo.gasLimit._hex)}
                 />
               </td>
             </tr>

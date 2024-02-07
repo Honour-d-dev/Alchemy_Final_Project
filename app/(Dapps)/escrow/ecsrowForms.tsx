@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import type { EscrowType } from "./utils/types";
-import { Address, zeroAddress } from "viem";
+import { Address, parseEther, parseUnits, zeroAddress } from "viem";
 import { IoIosAddCircleOutline, IoMdRemoveCircleOutline } from "react-icons/io";
 import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,7 +27,7 @@ export const OtcForm = () => {
   const formSchema = z.object({
     beneficiary: z.custom<Address>(isAddress),
     token: z.custom<Address>(isAddress).optional(),
-    amount: z.bigint().positive(),
+    amount: z.string().regex(/^[0-9]+(\.[0-9]+)?$/),
     arbiter: z.custom<Address>(isAddress).array().min(1),
   });
 
@@ -59,18 +59,28 @@ export const OtcForm = () => {
     }
     if (wallet && formRef.current) {
       const { amount, arbiter, beneficiary, token } = formRef.current;
+      const tokenAmount = token ? parseUnits(amount, await wallet.tokenDecimals(token)) : parseEther(amount);
       try {
         if (token) {
           toast.loading("approving token...", { id });
-          await wallet.approveToken(token, amount);
+
+          await wallet.approveToken(token, tokenAmount);
+
+          toast.loading("creating escrow...", { id });
+
+          await wallet.write({
+            functionName: "createOTC",
+            args: [arbiter, beneficiary, token, tokenAmount],
+          });
+        } else {
+          toast.loading("creating escrow...", { id });
+
+          await wallet.write({
+            functionName: "createOTC",
+            args: [arbiter, beneficiary, zeroAddress, tokenAmount],
+            value: tokenAmount,
+          });
         }
-        toast.loading("creating escrow...", { id });
-        const hash = await wallet.write({
-          functionName: "createOTC",
-          args: [arbiter, beneficiary, token ?? zeroAddress, amount],
-          value: !token ? amount : undefined,
-        });
-        await wallet.waitForTransactionReceipt({ hash });
         toast.success("escrow created!", { id, duration: 3000 });
       } catch (error) {
         if (error && typeof error === "object" && "message" in error) {
@@ -165,9 +175,9 @@ export const OtcForm = () => {
         className="-mt-2 h-8 rounded-md border border-primary pl-2"
         type="text"
         id="amount"
-        pattern="[0-9]+"
+        pattern="/^[0-9]+(\.[0-9]+)?$/"
         onChange={(e) => {
-          formRef.current.amount = BigInt(e.target.value);
+          formRef.current.amount = e.target.value;
         }}
       />
       <button
@@ -189,7 +199,7 @@ export const TlForm = () => {
   const formSchema = z.object({
     beneficiary: z.custom<Address>(isAddress),
     token: z.custom<Address>(isAddress).optional(),
-    amount: z.bigint().positive(),
+    amount: z.string().regex(/^[0-9]+(\.[0-9]+)?$/),
     timeLock: z.bigint().positive(),
   });
 
@@ -204,18 +214,24 @@ export const TlForm = () => {
     }
     if (wallet && formRef.current) {
       const { beneficiary, timeLock, token, amount } = formRef.current;
+      const tokenAmount = token ? parseUnits(amount, await wallet.tokenDecimals(token)) : parseEther(amount);
       try {
         if (token) {
           toast.loading("approving token...", { id });
-          await wallet.approveToken(token, amount);
+          await wallet.approveToken(token, tokenAmount);
+          toast.loading("creating escrow...", { id });
+          await wallet.write({
+            functionName: "createTL",
+            args: [beneficiary, timeLock, token, tokenAmount],
+          });
+        } else {
+          toast.loading("creating escrow...", { id });
+          await wallet.write({
+            functionName: "createTL",
+            args: [beneficiary, timeLock, zeroAddress, tokenAmount],
+            value: tokenAmount,
+          });
         }
-        toast.loading("creating escrow...", { id });
-        const hash = await wallet.write({
-          functionName: "createTL",
-          args: [beneficiary, timeLock, token ?? zeroAddress, amount],
-          value: !token ? amount : undefined,
-        });
-        await wallet.waitForTransactionReceipt({ hash });
         toast.success("escrow created!", { id, duration: 3000 });
       } catch (error) {
         if (error && typeof error === "object" && "message" in error) {
@@ -262,9 +278,9 @@ export const TlForm = () => {
         className="-mt-2 h-8 rounded-md border border-primary pl-2"
         type="text"
         id="amount"
-        pattern="[0-9]+"
+        pattern="/^[0-9]+(\.[0-9]+)?$/"
         onChange={(e) => {
-          formRef.current.amount = BigInt(e.target.value);
+          formRef.current.amount = e.target.value;
         }}
       />
       <label className="font-semibold" htmlFor="duration">
@@ -298,8 +314,8 @@ export const ExcForm = () => {
     beneficiary: z.custom<Address>(isAddress),
     dToken: z.custom<Address>(isAddress).optional(),
     bToken: z.custom<Address>(isAddress).optional(),
-    dAmount: z.bigint().positive(),
-    bAmount: z.bigint().positive(),
+    dAmount: z.string().regex(/^[0-9]+(\.[0-9]+)?$/),
+    bAmount: z.string().regex(/^[0-9]+(\.[0-9]+)?$/),
   });
 
   type EscrowForm = z.infer<typeof formSchema>;
@@ -313,19 +329,25 @@ export const ExcForm = () => {
     }
     if (wallet && formRef.current) {
       const { beneficiary, dToken, bToken, dAmount, bAmount } = formRef.current;
+      const dTokenAmount = dToken ? parseUnits(dAmount, await wallet.tokenDecimals(dToken)) : parseEther(dAmount);
+      const bTokenAmount = bToken ? parseUnits(bAmount, await wallet.tokenDecimals(bToken)) : parseEther(bAmount);
       try {
         if (dToken) {
           toast.loading("approving token...", { id });
-          await wallet.approveToken(dToken, dAmount);
+          await wallet.approveToken(dToken, dTokenAmount);
+          toast.loading("creating escrow...", { id });
+          await wallet.write({
+            functionName: "createExc",
+            args: [beneficiary, dToken, bToken ?? zeroAddress, dTokenAmount, bTokenAmount],
+          });
+        } else {
+          toast.loading("creating escrow...", { id });
+          await wallet.write({
+            functionName: "createExc",
+            args: [beneficiary, zeroAddress, bToken ?? zeroAddress, dTokenAmount, bTokenAmount],
+            value: dTokenAmount,
+          });
         }
-        toast.loading("creating escrow...", { id });
-        const hash = await wallet.write({
-          functionName: "createExc",
-          args: [beneficiary, dToken ?? zeroAddress, bToken ?? zeroAddress, dAmount, bAmount],
-          value: !dToken ? dAmount : undefined,
-        });
-
-        await wallet.waitForTransactionReceipt({ hash });
         toast.success("escrow created!", { id, duration: 3000 });
       } catch (error) {
         if (error && typeof error === "object" && "message" in error) {
@@ -372,9 +394,9 @@ export const ExcForm = () => {
         className="-mt-2 h-8 rounded-md border border-primary pl-2"
         type="text"
         id="dAmount"
-        pattern="[0-9]+"
+        pattern="/^[0-9]+(\.[0-9]+)?$/"
         onChange={(e) => {
-          formRef.current.dAmount = BigInt(e.target.value);
+          formRef.current.dAmount = e.target.value;
         }}
       />
       <label className="font-semibold" htmlFor="bToken">
@@ -397,9 +419,9 @@ export const ExcForm = () => {
         className="-mt-2 h-8 rounded-md border border-primary pl-2"
         type="text"
         id="bAmount"
-        pattern="[0-9]+"
+        pattern="/^[0-9]+(\.[0-9]+)?$/"
         onChange={(e) => {
-          formRef.current.bAmount = BigInt(e.target.value);
+          formRef.current.bAmount = e.target.value;
         }}
       />
       <button
