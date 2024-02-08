@@ -1,11 +1,11 @@
 "use client";
-
 import Link from "next/link";
 import { alchemy, timeFormat } from "@/utils/utils";
 import { useEffect, useState } from "react";
-import { Utils, Block } from "alchemy-sdk";
+import type { Block } from "alchemy-sdk";
 import { useParams } from "next/navigation";
 import { blockStatus } from "@/utils/utils";
+import { formatEther, formatGwei, isHex } from "viem";
 
 function Block() {
   const { block } = useParams();
@@ -16,8 +16,8 @@ function Block() {
 
   useEffect(() => {
     async function getBlockInfo() {
-      const blockData = Utils.isHexString(block)
-        ? await alchemy.core.getBlock(block as string)
+      const blockData = isHex(block)
+        ? await alchemy.core.getBlock(block)
         : await alchemy.core.getBlock(parseInt(block as string));
 
       const finalized = await alchemy.core.getBlock("finalized");
@@ -81,12 +81,12 @@ function Block() {
             </tr>
             <tr>
               <td className=" p-4">Gas Fee:</td>
-              <td className=" p-4">{`${Utils.formatUnits(blockInfo.baseFeePerGas!._hex, "gwei").slice(0, 5)} Gwei`}</td>
+              <td className=" p-4">{`${formatGwei(BigInt(blockInfo.baseFeePerGas!._hex)).slice(0, 5)} Gwei`}</td>
             </tr>
             <tr>
               <td className=" p-4">Burnt ETH</td>
-              <td className=" p-4">{`${Utils.formatEther(
-                BigInt(blockInfo.baseFeePerGas!._hex) * BigInt(blockInfo.gasUsed._hex), //cross check
+              <td className=" p-4">{`${formatEther(
+                BigInt(blockInfo.baseFeePerGas!._hex) * BigInt(blockInfo.gasUsed._hex),
               )} ETH`}</td>
             </tr>
           </tbody>

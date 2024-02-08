@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
-import { alchemy, format } from "@/utils/utils";
+import { format } from "@/utils/utils";
+import { alchemy } from "@/utils/server";
 import Link from "next/link";
 import { AssetTransfersCategory, AssetTransfersWithMetadataResult, SortingOrder, Utils } from "alchemy-sdk";
 import { useParams } from "next/navigation";
 import { RxOpenInNewWindow } from "react-icons/rx";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isAddress, isHex } from "viem";
 
 function Wallet() {
   const { wallet } = useParams();
@@ -16,7 +18,7 @@ function Wallet() {
 
   useEffect(() => {
     async function getBalance() {
-      if (typeof wallet !== "string") throw new Error("Wallet not found");
+      if (!isHex(wallet) || !isAddress(wallet)) throw new Error("Wallet not found"); //show error page
       const balance = await alchemy.core.getBalance(wallet);
       const count = await alchemy.core.getTransactionCount(wallet);
       const fromTransfers = await alchemy.core.getAssetTransfers({

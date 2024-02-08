@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { alchemy, timeFormat } from "@/utils/utils";
-import { Utils, TransactionReceipt, TransactionResponse } from "alchemy-sdk";
+import { timeFormat } from "@/utils/utils";
+import { alchemy } from "@/utils/server";
+import type { TransactionReceipt, TransactionResponse } from "alchemy-sdk";
 import { useParams } from "next/navigation";
+import { formatEther, formatGwei, isHash, isHex } from "viem";
 
 function Transaction() {
   const { transactionHash } = useParams();
@@ -12,8 +14,9 @@ function Transaction() {
 
   useEffect(() => {
     async function getTransactionInfo() {
-      const transactionInfo = await alchemy.transact.getTransaction(transactionHash as string);
-      const transactionReceipt = await alchemy.core.getTransactionReceipt(transactionHash as string);
+      if (!isHex(transactionHash) || !isHash(transactionHash)) throw new Error("Transaction not found");
+      const transactionInfo = await alchemy.transact.getTransaction(transactionHash);
+      const transactionReceipt = await alchemy.core.getTransactionReceipt(transactionHash);
       if (!transactionInfo || !transactionReceipt) throw new Error("Transaction not found"); //todo route to error page
       const time = (await alchemy.core.getBlock(transactionInfo.blockNumber!)).timestamp;
 
@@ -62,11 +65,11 @@ function Transaction() {
             </tr>
             <tr>
               <td className=" p-4">Amount:</td>
-              <td className=" p-4">{`${Utils.formatEther(transactionInfo.value._hex)} ETH`} </td>
+              <td className=" p-4">{`${formatEther(BigInt(transactionInfo.value._hex))} ETH`} </td>
             </tr>
             <tr>
               <td className=" p-4">Gas Price:</td>
-              <td className=" p-4"> {`${Utils.formatUnits(transactionInfo.gasPrice ?? 0, "gwei")} Gwei`}</td>
+              <td className=" p-4"> {`${formatGwei(BigInt(transactionInfo.gasPrice!._hex))} Gwei`}</td>
             </tr>
             <tr>
               <td className=" p-4">Gas used:</td>
@@ -74,7 +77,7 @@ function Transaction() {
             </tr>
             <tr>
               <td className=" p-4">Fee:</td>
-              <td className=" p-4">{`${Utils.formatEther(
+              <td className=" p-4">{`${formatEther(
                 BigInt(transactionInfo.gasPrice!._hex) * BigInt(transactionReceipt.gasUsed._hex), //cross check
               )} ETH`}</td>
             </tr>
