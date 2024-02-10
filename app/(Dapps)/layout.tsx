@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <div className=" max-w-screen flex min-h-screen flex-row items-center justify-center ">
+    <div className=" max-w-screen flex min-h-screen flex-row items-center justify-start ">
       <Sheet>
         <SheetTrigger className=" fixed left-4 top-4 z-30 flex h-8 w-8 items-center justify-center rounded bg-white p-1 shadow-md">
           <AiOutlineBars className="h-6 w-6" />

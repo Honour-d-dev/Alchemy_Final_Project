@@ -6,7 +6,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { EscrowForm } from "./ecsrowForms";
 import { useEscrow } from "./utils/useEscrow";
 import Escrow from "./escrow";
-import { format } from "@/utils/utils";
+import { formatAddress } from "@/utils/utils";
 
 function App() {
   const [escrowType, setEscrowType] = useState<EscrowType>();
@@ -25,7 +25,7 @@ function App() {
             await connectWallet();
           }}
         >
-          {account ? format(account) : "connect"}
+          {account ? formatAddress(account) : "connect"}
         </div>
       </div>
       <div className="flex w-[400px] flex-col gap-2 rounded-lg border">

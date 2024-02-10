@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { format } from "@/utils/utils";
+import { formatAddress } from "@/utils/utils";
 import { alchemy } from "@/utils/server";
 import Link from "next/link";
 import { AssetTransfersCategory, AssetTransfersWithMetadataResult, SortingOrder, Utils } from "alchemy-sdk";
@@ -84,7 +84,9 @@ function Wallet() {
                 transfersFrom.map((transferFrom) => (
                   <tr className=" border-b border-zinc-300" key={transferFrom.hash}>
                     <td className=" whitespace-nowrap p-3 hover:font-semibold">
-                      <Link href={`/explorer/transaction/${transferFrom.hash}`}>{format(transferFrom.hash)}</Link>
+                      <Link href={`/explorer/transaction/${transferFrom.hash}`}>
+                        {formatAddress(transferFrom.hash)}
+                      </Link>
                     </td>
                     <td className="whitespace-nowrap p-3 hover:font-semibold">
                       <Link href={`/explorer/block/${Number(transferFrom.blockNum)}`}>
@@ -92,11 +94,11 @@ function Wallet() {
                       </Link>
                     </td>
                     <td className="whitespace-nowrap p-3 hover:font-semibold">
-                      <Link href={`/explorer/wallet/${transferFrom.from}`}>{format(transferFrom.from)}</Link>
+                      <Link href={`/explorer/wallet/${transferFrom.from}`}>{formatAddress(transferFrom.from)}</Link>
                     </td>
                     <td className="whitespace-nowrap p-3 hover:font-semibold">
                       <Link href={`/explorer/wallet/${transferFrom.to}`}>
-                        {transferFrom.to ? format(transferFrom.to) : "-"}
+                        {transferFrom.to ? formatAddress(transferFrom.to) : "-"}
                       </Link>
                     </td>
                     <td className="whitespace-nowrap p-3">{transferFrom.metadata.blockTimestamp.slice(0, 10)}</td>
@@ -129,17 +131,17 @@ function Wallet() {
                 transfersTo.map((transferTo) => (
                   <tr className=" border-b border-zinc-300" key={transferTo.hash}>
                     <td className=" whitespace-nowrap p-3 hover:font-medium">
-                      <Link href={`/explorer/transaction/${transferTo.hash}`}>{format(transferTo.hash)}</Link>
+                      <Link href={`/explorer/transaction/${transferTo.hash}`}>{formatAddress(transferTo.hash)}</Link>
                     </td>
                     <td className="whitespace-nowrap p-3 hover:font-medium">
                       <Link href={`/explorer/block/${Number(transferTo.blockNum)}`}>{Number(transferTo.blockNum)}</Link>
                     </td>
                     <td className="whitespace-nowrap p-3 hover:font-medium">
-                      <Link href={`/explorer/wallet/${transferTo.from}`}>{format(transferTo.from)}</Link>
+                      <Link href={`/explorer/wallet/${transferTo.from}`}>{formatAddress(transferTo.from)}</Link>
                     </td>
                     <td className="whitespace-nowrap p-3 hover:font-medium">
                       <Link href={`/explorer/wallet/${transferTo.to}`}>
-                        {transferTo.to ? format(transferTo.to) : "-"}
+                        {transferTo.to ? formatAddress(transferTo.to) : "-"}
                       </Link>
                     </td>
                     <td className="whitespace-nowrap p-3">{transferTo.metadata.blockTimestamp.slice(0, 10)}</td>

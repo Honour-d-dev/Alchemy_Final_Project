@@ -5,7 +5,7 @@ import { FiSearch } from "react-icons/fi";
 import { FaWallet } from "react-icons/fa";
 import { BiErrorAlt } from "react-icons/bi";
 import { Tab } from "@headlessui/react";
-import { format } from "@/utils/utils";
+import { formatAddress } from "@/utils/utils";
 import { alchemy } from "@/utils/server";
 import { useSearchParams, useRouter } from "next/navigation";
 import spinner from "../../../public/Spinner.svg";
@@ -110,7 +110,7 @@ export default function indexer() {
     const [account] = await window.ethereum.request({
       method: "eth_requestAccounts",
     });
-    document.getElementById("connect_button")!.innerText = format(account);
+    document.getElementById("connect_button")!.innerText = formatAddress(account);
     search(account);
   };
 

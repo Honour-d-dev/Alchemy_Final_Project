@@ -11,9 +11,13 @@ const day = 60 * 60 * 24;
 
 export const alchemy = new Alchemy(config);
 
-export const format = (account: string) => `${account.slice(0, 5)}...${account.slice(-5)}`;
+export const range = (start: number, end: number) => {
+  return Array.from({ length: end - start }, (_, i) => start + i);
+};
 
-export const timeFormat = (timestamp: number) => {
+export const formatAddress = (account: string) => `${account.slice(0, 5)}...${account.slice(-5)}`;
+
+export const formatTime = (timestamp: number) => {
   const time = Math.floor(Date.now() / 1000) - timestamp;
   switch (true) {
     case time < minute:

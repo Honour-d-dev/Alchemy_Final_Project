@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { timeFormat } from "@/utils/utils";
+import { formatTime } from "@/utils/utils";
 import { alchemy } from "@/utils/server";
 import type { TransactionReceipt, TransactionResponse } from "alchemy-sdk";
 import { useParams } from "next/navigation";
@@ -83,7 +83,7 @@ function Transaction() {
             </tr>
             <tr>
               <td className=" p-4">Timestamp:</td>
-              <td className=" p-4"> {timeFormat(transactionInfo.time)} </td>
+              <td className=" p-4"> {formatTime(transactionInfo.time)} </td>
             </tr>
           </tbody>
         </table>
