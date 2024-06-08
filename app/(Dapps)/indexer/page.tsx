@@ -121,7 +121,7 @@ export default function indexer() {
   };
 
   return (
-    <div className="flex flex-col justify-start self-start">
+    <div className="flex w-full flex-col justify-start self-start">
       <div className="fixed left-0 right-0 top-0 z-10 h-20 w-screen bg-primary blur-[1px]"></div>
       <h1 className="sticky top-5 z-20 mb-10 text-center text-3xl font-medium text-zinc-300 md:text-4xl md:font-semibold">
         Token Indexer Dapp{" "}

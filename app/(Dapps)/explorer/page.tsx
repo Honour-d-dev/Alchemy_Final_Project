@@ -33,7 +33,7 @@ export default function Explorer() {
   }, []);
 
   return (
-    <div className="m-4 flex w-full flex-col  justify-center lg:flex-row">
+    <div className="m-4 flex w-full flex-col  justify-center lg:flex-row lg:items-start">
       <div className="m-4 flex flex-grow flex-col overflow-x-auto rounded border border-gray-200 bg-white p-4 shadow">
         <h2 className="border-b border-zinc-400 text-xl">Latest Blocks</h2>
         <table>

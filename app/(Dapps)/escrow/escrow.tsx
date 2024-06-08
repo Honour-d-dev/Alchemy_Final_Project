@@ -8,6 +8,7 @@ import { EscrowType } from "./utils/types";
 export default function Escrow() {
   const { excEscrows, tlEscrows, otcEscrows } = useEscrow();
   const [loadedEscrow, setLoadedEscrow] = useState<{ type: EscrowType; index: number }>();
+  const escrowsAvailable = excEscrows.length > 0 || tlEscrows.length > 0 || otcEscrows.length > 0;
 
   return (
     <div>
@@ -20,32 +21,34 @@ export default function Escrow() {
           <LoadOtc index={loadedEscrow.index} />
         )
       ) : null}
-      <div className="flex flex-col rounded-lg p-5 shadow-md">
-        {excEscrows.map((escrow, index) => {
-          return (
-            <div key={escrow.counter} onClick={() => setLoadedEscrow({ type: "exchange", index })}>
-              <span>Reciepient {escrow.beneficiary}</span>
-              <span>Depositor {escrow.depositor}</span>
-            </div>
-          );
-        })}
-        {tlEscrows.map((escrow, index) => {
-          return (
-            <div key={escrow.counter} onClick={() => setLoadedEscrow({ type: "timelock", index })}>
-              <span>Reciepient {escrow.beneficiary}</span>
-              <span>Depositor {escrow.depositor}</span>
-            </div>
-          );
-        })}
-        {otcEscrows.map((escrow, index) => {
-          return (
-            <div key={escrow.counter} onClick={() => setLoadedEscrow({ type: "otc", index })}>
-              <span>Reciepient {escrow.beneficiary}</span>
-              <span>Depositor {escrow.depositor}</span>
-            </div>
-          );
-        })}
-      </div>
+      {escrowsAvailable && (
+        <div className="flex flex-col rounded-lg p-5 shadow-md">
+          {excEscrows.map((escrow, index) => {
+            return (
+              <div key={escrow.counter} onClick={() => setLoadedEscrow({ type: "exchange", index })}>
+                <span>Reciepient {escrow.beneficiary}</span>
+                <span>Depositor {escrow.depositor}</span>
+              </div>
+            );
+          })}
+          {tlEscrows.map((escrow, index) => {
+            return (
+              <div key={escrow.counter} onClick={() => setLoadedEscrow({ type: "timelock", index })}>
+                <span>Reciepient {escrow.beneficiary}</span>
+                <span>Depositor {escrow.depositor}</span>
+              </div>
+            );
+          })}
+          {otcEscrows.map((escrow, index) => {
+            return (
+              <div key={escrow.counter} onClick={() => setLoadedEscrow({ type: "otc", index })}>
+                <span>Reciepient {escrow.beneficiary}</span>
+                <span>Depositor {escrow.depositor}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -164,16 +167,16 @@ const LoadOtc = ({ index }: { index: number }) => {
     if (wallet) await wallet.write({ functionName: "claimOTC", args: [BigInt(index)] });
   };
 
-  const cancel = async () => {
-    if (wallet) await wallet.write({ functionName: "cancelOTC", args: [BigInt(index)] });
+  const dispute = async () => {
+    if (wallet) await wallet.write({ functionName: "disputeOTC", args: [BigInt(index)] });
   };
 
   const approve = async () => {
-    if (wallet) await wallet.write({ functionName: "approveOTC", args: [BigInt(index)] });
+    if (wallet) await wallet.write({ functionName: "approveDisputeOTC", args: [BigInt(index)] });
   };
 
-  const revoke = async () => {
-    if (wallet) await wallet.write({ functionName: "revokeOTC", args: [BigInt(index)] });
+  const release = async () => {
+    if (wallet) await wallet.write({ functionName: "releaseOTC", args: [BigInt(index)] });
   };
 
   return (
@@ -185,8 +188,8 @@ const LoadOtc = ({ index }: { index: number }) => {
       <div>
         <button onClick={claim}>claim</button>
         <button onClick={approve}>approve</button>
-        <button onClick={revoke}>revoke</button>
-        <button onClick={cancel}>cancel</button>
+        <button onClick={release}>release</button>
+        <button onClick={dispute}>dispute</button>
       </div>
     </div>
   );

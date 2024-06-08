@@ -17,8 +17,8 @@ export default async function ExplorerLayout({ children }: { children: React.Rea
   };
 
   return (
-    <div className="flex min-h-screen w-screen flex-col items-center justify-start gap-8 bg-blue-50/70">
-      <div className="sticky top-0 z-20 flex w-full flex-col items-center justify-center gap-4 bg-primary py-7 md:flex-row">
+    <div className="flex min-h-screen w-full flex-col items-center justify-start gap-8 bg-blue-50/70">
+      <div className="sticky left-0 top-0 z-20 flex w-full flex-col items-center justify-center gap-4 bg-primary py-7 md:flex-row">
         <h1 className=" z-20 text-4xl font-semibold text-white">Block Explorer</h1>
         <form
           action={navigateRoute}
